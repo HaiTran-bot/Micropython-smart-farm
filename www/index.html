@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+<title>YoloFarm Dashboard</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#f0fdf4;--surface:#ffffff;--card:#ffffff;
+  --border:#e2e8f0;--border-hover:#cbd5e1;
+  --text:#1e293b;--dim:#64748b;--muted:#94a3b8;
+  --shadow:0 1px 3px rgba(0,0,0,0.06),0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:0 4px 12px rgba(0,0,0,0.07),0 2px 4px rgba(0,0,0,0.04);
+  --shadow-lg:0 8px 24px rgba(0,0,0,0.08);
+  --emerald:#059669;--emerald-bg:#ecfdf5;--emerald-light:#d1fae5;
+  --cyan:#0891b2;--cyan-bg:#ecfeff;--cyan-light:#cffafe;
+  --orange:#ea580c;--orange-bg:#fff7ed;--orange-light:#ffedd5;
+  --violet:#7c3aed;--violet-bg:#f5f3ff;--violet-light:#ede9fe;
+  --amber:#d97706;--amber-bg:#fffbeb;--amber-light:#fef3c7;
+  --rose:#e11d48;--rose-bg:#fff1f2;--rose-light:#ffe4e6;
+  --green:#16a34a;--green-bg:#f0fdf4;--green-light:#dcfce7;
+  --red:#dc2626;--red-bg:#fef2f2;--red-light:#fee2e2;
+  --blue:#2563eb;--blue-bg:#eff6ff;
+  --radius:16px;--radius-sm:12px;--radius-xs:8px
+}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  background:var(--bg);color:var(--text);min-height:100vh;
+  background-image:
+    radial-gradient(ellipse 800px 600px at 20% 0%,rgba(16,185,129,0.08),transparent),
+    radial-gradient(ellipse 600px 400px at 80% 100%,rgba(59,130,246,0.06),transparent)
+}
+.container{max-width:460px;margin:0 auto;padding:16px 16px 32px}
+
+/* ===== HEADER ===== */
+.header{text-align:center;padding:12px 0 20px}
+.logo{font-size:2.4rem;margin-bottom:2px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.1))}
+.header h1{
+  font-size:1.6rem;font-weight:800;letter-spacing:-.03em;
+  color:var(--emerald)
+}
+.header .sub{font-size:.8rem;color:var(--muted);margin-top:2px;font-weight:500}
+.status-pill{
+  display:inline-flex;align-items:center;gap:7px;
+  margin-top:10px;padding:6px 16px;border-radius:20px;
+  background:var(--surface);border:1px solid var(--border);
+  font-size:.72rem;color:var(--dim);font-weight:600;
+  box-shadow:var(--shadow)
+}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dot.on{background:var(--green);box-shadow:0 0 0 3px rgba(22,163,74,0.2)}
+.dot.off{background:var(--red);box-shadow:0 0 0 3px rgba(220,38,38,0.2)}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.3)}}
+.dot{animation:pulse 2s ease-in-out infinite}
+
+/* ===== SENSOR GRID ===== */
+.sensor-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.s-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:18px 16px;position:relative;overflow:hidden;
+  box-shadow:var(--shadow);transition:transform .2s,box-shadow .2s
+}
+.s-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.s-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:4px;
+  border-radius:var(--radius) var(--radius) 0 0
+}
+.s-card.temp{background:var(--orange-bg)}
+.s-card.temp::before{background:linear-gradient(90deg,#f97316,#fb923c)}
+.s-card.humid{background:var(--cyan-bg)}
+.s-card.humid::before{background:linear-gradient(90deg,#06b6d4,#22d3ee)}
+.s-card.soil{background:var(--violet-bg)}
+.s-card.soil::before{background:linear-gradient(90deg,#8b5cf6,#a78bfa)}
+.s-card.light{background:var(--amber-bg)}
+.s-card.light::before{background:linear-gradient(90deg,#f59e0b,#fbbf24)}
+
+.s-card .s-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.s-card .s-icon{font-size:1.6rem}
+.s-card .s-label{
+  font-size:.65rem;color:var(--dim);text-transform:uppercase;
+  letter-spacing:1px;font-weight:700;background:rgba(255,255,255,0.7);
+  padding:2px 8px;border-radius:6px
+}
+.s-card .s-value{font-size:2rem;font-weight:800;line-height:1}
+.s-card .s-unit{font-size:.85rem;font-weight:500;color:var(--muted)}
+.s-card.temp .s-value{color:var(--orange)}
+.s-card.humid .s-value{color:var(--cyan)}
+.s-card.soil .s-value{color:var(--violet)}
+.s-card.light .s-value{color:var(--amber)}
+
+/* ===== GDD ===== */
+.gdd-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  background:linear-gradient(135deg,var(--emerald-bg),var(--blue-bg));
+  border:1px solid var(--emerald-light);border-radius:var(--radius);
+  padding:16px 20px;margin-bottom:16px;box-shadow:var(--shadow)
+}
+.gdd-bar .gdd-left{display:flex;align-items:center;gap:10px}
+.gdd-bar .gdd-emoji{font-size:1.4rem}
+.gdd-bar .gdd-info .gdd-title{font-size:.7rem;color:var(--dim);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.gdd-bar .gdd-info .gdd-desc{font-size:.65rem;color:var(--muted);margin-top:1px}
+.gdd-bar .gdd-val{font-size:1.8rem;font-weight:800;color:var(--emerald)}
+
+/* ===== SECTION ===== */
+.section{margin-bottom:16px}
+.section-head{
+  font-size:.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:1.2px;
+  font-weight:700;margin-bottom:10px;padding-left:4px;display:flex;align-items:center;gap:6px
+}
+
+/* ===== MODE SELECTOR ===== */
+.mode-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.m-btn{
+  padding:14px 6px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);
+  background:var(--card);color:var(--dim);text-align:center;cursor:pointer;
+  transition:all .2s;font-family:inherit;font-size:.75rem;font-weight:700;line-height:1.35;
+  box-shadow:var(--shadow)
+}
+.m-btn:hover{border-color:var(--border-hover);box-shadow:var(--shadow-md);transform:translateY(-1px)}
+.m-btn .m-icon{font-size:1.3rem;display:block;margin-bottom:4px}
+.m-btn.a0{border-color:var(--rose);background:var(--rose-bg);color:var(--rose);box-shadow:0 0 0 2px var(--rose-light)}
+.m-btn.a1{border-color:var(--green);background:var(--green-bg);color:var(--green);box-shadow:0 0 0 2px var(--green-light)}
+.m-btn.a2{border-color:var(--amber);background:var(--amber-bg);color:var(--amber);box-shadow:0 0 0 2px var(--amber-light)}
+
+/* ===== PUMP CONTROLS ===== */
+.pump-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.p-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:18px 14px;text-align:center;box-shadow:var(--shadow)
+}
+.p-card .p-icon{font-size:1.4rem;margin-bottom:4px}
+.p-card .p-label{font-size:.72rem;color:var(--dim);font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.p-card .p-state{font-size:1.1rem;font-weight:800;margin-bottom:12px;letter-spacing:.5px}
+.p-card .p-state.on{color:var(--green)}
+.p-card .p-state.off{color:var(--red)}
+.p-btns{display:flex;gap:8px;justify-content:center}
+.p-btns button{
+  flex:1;max-width:80px;padding:9px 0;border:none;border-radius:var(--radius-xs);
+  font-size:.78rem;font-weight:700;cursor:pointer;transition:all .15s;font-family:inherit
+}
+.p-btns .bon{background:var(--green-light);color:var(--green);border:1.5px solid rgba(22,163,74,0.25)}
+.p-btns .bon:hover{background:rgba(22,163,74,0.2);transform:translateY(-1px)}
+.p-btns .boff{background:var(--red-light);color:var(--red);border:1.5px solid rgba(220,38,38,0.25)}
+.p-btns .boff:hover{background:rgba(220,38,38,0.2);transform:translateY(-1px)}
+.p-btns button:disabled{opacity:.3;cursor:not-allowed;transform:none!important}
+
+/* ===== FOOTER ===== */
+.foot{text-align:center;color:var(--muted);font-size:.68rem;padding:12px 0;letter-spacing:.3px}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:360px){
+  .s-card .s-value{font-size:1.6rem}
+  .gdd-bar .gdd-val{font-size:1.4rem}
+  .m-btn{padding:10px 4px 8px;font-size:.7rem}
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">&#x1F331;</div>
+    <h1>YoloFarm</h1>
+    <div class="sub">Smart Irrigation Dashboard</div>
+    <div class="status-pill">
+      <span class="dot off" id="statusDot"></span>
+      <span id="statusText">Connecting...</span>
+    </div>
+  </div>
+
+  <!-- Sensor Cards -->
+  <div class="sensor-grid">
+    <div class="s-card temp">
+      <div class="s-top">
+        <span class="s-icon">&#x1F321;&#xFE0F;</span>
+        <span class="s-label">Temperature</span>
+      </div>
+      <div class="s-value"><span id="vTemp">--</span><span class="s-unit"> &#176;C</span></div>
+    </div>
+
+    <div class="s-card humid">
+      <div class="s-top">
+        <span class="s-icon">&#x1F4A7;</span>
+        <span class="s-label">Humidity</span>
+      </div>
+      <div class="s-value"><span id="vHumid">--</span><span class="s-unit"> %</span></div>
+    </div>
+
+    <div class="s-card light">
+      <div class="s-top">
+        <span class="s-icon">&#x2600;&#xFE0F;</span>
+        <span class="s-label">Light</span>
+      </div>
+      <div class="s-value"><span id="vLight">--</span><span class="s-unit"> lux</span></div>
+    </div>
+
+    <div class="s-card soil">
+      <div class="s-top">
+        <span class="s-icon">&#x1F30D;</span>
+        <span class="s-label">Soil Moisture</span>
+      </div>
+      <div class="s-value"><span id="vSoil">--</span><span class="s-unit"> %</span></div>
+    </div>
+  </div>
+
+  <!-- GDD -->
+  <div class="gdd-bar">
+    <div class="gdd-left">
+      <span class="gdd-emoji">&#x1F33E;</span>
+      <div class="gdd-info">
+        <div class="gdd-title">Growing Degree Days</div>
+        <div class="gdd-desc">Accumulated heat units</div>
+      </div>
+    </div>
+    <div class="gdd-val" id="vGdd">0.00</div>
+  </div>
+
+  <!-- Mode -->
+  <div class="section">
+    <div class="section-head">&#x2699;&#xFE0F; Operating Mode</div>
+    <div class="mode-row">
+      <button class="m-btn" id="modeBtn0" onclick="setMode(0)"><span class="m-icon">&#x1F534;</span>Manual</button>
+      <button class="m-btn" id="modeBtn1" onclick="setMode(1)"><span class="m-icon">&#x1F7E2;</span>Auto<br>Sensor</button>
+      <button class="m-btn" id="modeBtn2" onclick="setMode(2)"><span class="m-icon">&#x1F7E1;</span>Auto<br>Schedule</button>
+    </div>
+  </div>
+
+  <!-- Pump -->
+  <div class="section">
+    <div class="section-head">&#x1F4A7; Pump Control</div>
+    <div class="pump-row">
+      <div class="p-card">
+        <div class="p-icon">&#x1F6B0;</div>
+        <div class="p-label">Pump 1</div>
+        <div class="p-state off" id="pump1Status">OFF</div>
+        <div class="p-btns">
+          <button class="bon" id="p1On" onclick="setPump(1,1)">ON</button>
+          <button class="boff" id="p1Off" onclick="setPump(1,0)">OFF</button>
+        </div>
+      </div>
+      <div class="p-card">
+        <div class="p-icon">&#x1F6B0;</div>
+        <div class="p-label">Pump 2</div>
+        <div class="p-state off" id="pump2Status">OFF</div>
+        <div class="p-btns">
+          <button class="bon" id="p2On" onclick="setPump(2,1)">ON</button>
+          <button class="boff" id="p2Off" onclick="setPump(2,0)">OFF</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">YoloFarm &#169; 2026 &#8212; Smart Irrigation System</div>
+</div>
+
+<script>
+// =============================================================
+// UNIFIED TOGGLE - Auto-Detect Mode (Zero config on HTML side)
+// =============================================================
+const API=window.location.origin;
+let currentMode=0,gddCounter=0,pump1State=0,pump2State=0;
+let isOffline=false,isMockHW=false;
+
+function updateUI(d){
+  document.getElementById('vTemp').textContent=Number(d.temperature).toFixed(1);
+  document.getElementById('vHumid').textContent=Number(d.humidity).toFixed(0);
+  document.getElementById('vSoil').textContent=Number(d.soil).toFixed(0);
+  document.getElementById('vLight').textContent=Math.round(d.light);
+  document.getElementById('vGdd').textContent=d.gdd.toFixed(2);
+  currentMode=d.mode;
+  for(let i=0;i<3;i++){
+    const b=document.getElementById('modeBtn'+i);
+    b.className='m-btn'+(d.mode===i?' a'+i:'');
+  }
+  updatePumpUI(1,d.pump1);
+  updatePumpUI(2,d.pump2);
+  const dis=d.mode!==0;
+  ['p1On','p1Off','p2On','p2Off'].forEach(id=>document.getElementById(id).disabled=dis);
+  const dot=document.getElementById('statusDot'),txt=document.getElementById('statusText');
+  if(isOffline){dot.className='dot off';txt.textContent='MOCK (OFFLINE HTML)';}
+  else if(isMockHW){dot.className='dot on';txt.textContent='MOCK (PYTHON SERVER)';}
+  else{dot.className='dot on';txt.textContent='CONNECTED (YOLO:BIT)';}
+}
+function updatePumpUI(n,s){
+  const el=document.getElementById('pump'+n+'Status');
+  el.textContent=s?'ON':'OFF';
+  el.className='p-state '+(s?'on':'off');
+}
+
+async function syncRTC(){
+  const n=new Date();
+  const td={year:n.getFullYear(),month:n.getMonth()+1,day:n.getDate(),weekday:n.getDay(),hour:n.getHours(),minute:n.getMinutes(),second:n.getSeconds()};
+  try{await fetch(API+'/api/time',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(td)});}catch(e){}
+}
+
+async function fetchData(){
+  try{
+    const r=await fetch(API+'/api/data');
+    if(!r.ok)throw new Error();
+    const d=await r.json();
+    isOffline=false;isMockHW=!!d.is_mock;
+    updateUI(d);
+  }catch(e){
+    isOffline=true;isMockHW=true;
+    const m={temperature:(25+Math.random()*10).toFixed(1),humidity:(60+Math.random()*30).toFixed(1),soil:(30+Math.random()*50).toFixed(1),light:Math.floor(400+Math.random()*2600),gdd:gddCounter,mode:currentMode,pump1:pump1State,pump2:pump2State};
+    gddCounter+=0.05;updateUI(m);
+  }
+}
+
+async function setMode(mode){
+  if(isOffline){currentMode=mode;if(mode!==0){pump1State=0;pump2State=0;}fetchData();}
+  else{try{await fetch(API+'/api/mode',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:mode})});fetchData();}catch(e){}}
+}
+
+async function setPump(pump,state){
+  if(currentMode!==0)return;
+  if(isOffline){if(pump===1)pump1State=state;if(pump===2)pump2State=state;fetchData();}
+  else{try{await fetch(API+'/api/pump',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pump:pump,state:state})});fetchData();}catch(e){}}
+}
+
+syncRTC();fetchData();setInterval(fetchData,1000);  // Ép Web cập nhật mỗi 1 giây để bắt kịp LCD  // Đồng bộ với SENSOR_INTERVAL (5s)
+</script>
+</body>
+</html>
